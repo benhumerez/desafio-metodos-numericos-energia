@@ -1,0 +1,321 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Ahorro Energético</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;font-family:Arial,sans-serif;
+ background:#f1f5f9;color:#172033;
+}
+header{
+ background:#123c55;color:white;padding:25px 6%;
+}
+header h1{margin:0 0 8px}
+main{max-width:1150px;margin:25px auto;padding:0 16px}
+.card{
+ background:white;padding:20px;border-radius:12px;
+ margin-bottom:18px;box-shadow:0 2px 9px #0001;
+}
+.grid{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+ gap:14px;
+}
+label{font-weight:bold;font-size:14px}
+input{
+ width:100%;padding:11px;margin-top:7px;
+ border:1px solid #cbd5e1;border-radius:7px;
+}
+button{
+ padding:12px 20px;border:0;border-radius:7px;
+ background:#087e8b;color:white;font-weight:bold;
+ cursor:pointer;margin-top:15px;
+}
+button:hover{background:#075e68}
+.metrics{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+ gap:12px;
+}
+.metric{background:#eaf5f7;padding:16px;border-radius:9px}
+.metric strong{display:block;font-size:23px;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:10px;text-align:right;border-bottom:1px solid #ddd}
+th{background:#eaf0f5}
+.table-wrap{overflow-x:auto}
+svg{width:100%;height:auto;min-height:280px}
+.note{color:#64748b;font-size:13px}
+.error{color:#b91c1c;font-weight:bold}
+footer{text-align:center;padding:25px;color:#64748b}
+</style>
+</head>
+<body>
+
+<header>
+<h1>Simulador de Ahorro Energético</h1>
+<p>Métodos Numéricos: solución analítica, Heun y RK4</p>
+</header>
+
+<main>
+
+<section class="card">
+<h2>Descripción del problema</h2>
+<p>
+Este simulador representa la reducción del consumo innecesario
+de electricidad en una comunidad universitaria después de
+implementar medidas de ahorro energético.
+</p>
+<p><b>Modelo matemático:</b> dE/dt = -kE</p>
+<p><b>Solución analítica:</b> E(t) = E₀ · e^(-kt)</p>
+</section>
+
+<section class="card">
+<h2>Parámetros de simulación</h2>
+<div class="grid">
+<div>
+<label>Consumo inicial E₀ (kWh/mes)</label>
+<input id="e0" type="number" value="1000" min="0.01" step="any">
+</div>
+<div>
+<label>Tasa de reducción k (mes⁻¹)</label>
+<input id="k" type="number" value="0.25" min="0.0001" step="any">
+</div>
+<div>
+<label>Tamaño de paso h (meses)</label>
+<input id="h" type="number" value="1" min="0.01" step="any">
+</div>
+<div>
+<label>Tiempo final (meses)</label>
+<input id="T" type="number" value="10" min="0.01" step="any">
+</div>
+<div>
+<label>Meta de reducción (%)</label>
+<input id="meta" type="number" value="80" min="0.01" max="99.99" step="any">
+</div>
+</div>
+<button onclick="calcular()">Ejecutar simulación</button>
+<p id="mensaje" class="note"></p>
+</section>
+
+<section class="card">
+<h2>Resultados principales</h2>
+<div class="metrics">
+<div class="metric">Consumo inicial<strong id="inicial">-</strong></div>
+<div class="metric">Consumo final exacto<strong id="final">-</strong></div>
+<div class="metric">Tiempo para la meta<strong id="tiempo">-</strong></div>
+<div class="metric">Iteraciones<strong id="iteraciones">-</strong></div>
+</div>
+</section>
+
+<section class="card">
+<h2>Gráfica comparativa</h2>
+<p class="note">
+Comparación del consumo innecesario mediante los tres métodos.
+</p>
+<svg id="grafica" viewBox="0 0 900 390"
+role="img" aria-label="Gráfica comparativa de consumo energético"></svg>
+<p class="note">
+Analítica: azul | Heun: naranja | RK4: verde
+</p>
+</section>
+
+<section class="card">
+<h2>Tabla comparativa de resultados</h2>
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>t (meses)</th>
+<th>Analítica</th>
+<th>Heun</th>
+<th>RK4</th>
+<th>Error Heun</th>
+<th>Error RK4</th>
+<th>% Heun</th>
+<th>% RK4</th>
+</tr>
+</thead>
+<tbody id="tabla"></tbody>
+</table>
+</div>
+</section>
+
+<section class="card">
+<h2>Interpretación automática</h2>
+<div id="interpretacion">
+Ejecuta la simulación para obtener una interpretación.
+</div>
+</section>
+
+<section class="card">
+<h2>Fundamento matemático</h2>
+<p><b>Ecuación:</b> E'(t) = -kE(t)</p>
+<p><b>Solución exacta:</b> E(t) = E₀e<sup>-kt</sup></p>
+<p><b>Heun:</b> E(n+1) = E(n) + h(k1+k2)/2</p>
+<p><b>RK4:</b> E(n+1) = E(n) + h(k1+2k2+2k3+k4)/6</p>
+<p class="note">
+El error absoluto es |exacto - aproximado|. El error relativo
+porcentual es (error absoluto / |exacto|) × 100.
+</p>
+</section>
+
+</main>
+
+<footer>
+Proyecto académico - Métodos Numéricos
+</footer>
+
+<script>
+function calcular(){
+
+ const E0=Number(document.getElementById("e0").value);
+ const k=Number(document.getElementById("k").value);
+ const h=Number(document.getElementById("h").value);
+ const T=Number(document.getElementById("T").value);
+ const meta=Number(document.getElementById("meta").value);
+ const mensaje=document.getElementById("mensaje");
+
+ if(![E0,k,h,T,meta].every(Number.isFinite) ||
+ E0<=0 || k<=0 || h<=0 || T<=0 ||
+ meta<=0 || meta>=100 || h>T){
+ mensaje.textContent="Error: verifica los valores. Todos deben ser positivos y la meta debe estar entre 0 y 100.";
+ mensaje.className="error";
+ return;
+ }
+
+ const n=Math.ceil(T/h);
+ if(n>2000){
+ mensaje.textContent="Demasiadas iteraciones. Aumenta h o reduce el tiempo final.";
+ mensaje.className="error";
+ return;
+ }
+
+ const datos=[];
+ let yH=E0,yR=E0;
+
+ for(let i=0;i<=n;i++){
+  const t=Math.min(i*h,T);
+  const exacta=E0*Math.exp(-k*t);
+
+  if(i>0){
+   const paso=t-datos[i-1].t;
+   const f=y=>-k*y;
+
+   // Método de Heun
+   const k1=f(yH);
+   const predictor=yH+paso*k1;
+   const k2=f(predictor);
+   yH=yH+paso*(k1+k2)/2;
+
+   // Método RK4
+   const a=f(yR);
+   const b=f(yR+paso*a/2);
+   const c=f(yR+paso*b/2);
+   const d=f(yR+paso*c);
+   yR=yR+paso*(a+2*b+2*c+d)/6;
+  }
+
+  const eaH=Math.abs(exacta-yH);
+  const eaR=Math.abs(exacta-yR);
+
+  datos.push({
+   t,exacta,heun:yH,rk4:yR,
+   eaH,eaR,
+   epH:exacta===0?0:eaH/Math.abs(exacta)*100,
+   epR:exacta===0?0:eaR/Math.abs(exacta)*100
+  });
+ }
+
+ const ultimo=datos[datos.length-1];
+ const tiempoMeta=Math.log(1-meta/100)/(-k);
+ const encontrado=datos.find(d=>d.exacta<=E0*(1-meta/100));
+
+ document.getElementById("inicial").textContent=E0.toFixed(2);
+ document.getElementById("final").textContent=ultimo.exacta.toFixed(4);
+ document.getElementById("tiempo").textContent=
+ tiempoMeta.toFixed(3)+" meses";
+ document.getElementById("iteraciones").textContent=n;
+
+ document.getElementById("tabla").innerHTML=datos.map(d=>`
+ <tr>
+ <td>${d.t.toFixed(2)}</td>
+ <td>${d.exacta.toFixed(4)}</td>
+ <td>${d.heun.toFixed(4)}</td>
+ <td>${d.rk4.toFixed(4)}</td>
+ <td>${d.eaH.toFixed(6)}</td>
+ <td>${d.eaR.toFixed(6)}</td>
+ <td>${d.epH.toFixed(5)}%</td>
+ <td>${d.epR.toFixed(5)}%</td>
+ </tr>`).join("");
+
+ dibujar(datos,E0);
+
+ const texto=
+ `La simulación indica que el consumo innecesario inicia en
+ ${E0.toFixed(2)} kWh/mes. Al finalizar ${T} meses, la solución
+ analítica estima ${ultimo.exacta.toFixed(2)} kWh/mes.
+ La meta de reducción del ${meta}% se alcanza teóricamente
+ en ${tiempoMeta.toFixed(3)} meses. `+
+ (tiempoMeta<=T
+ ? `Dentro del intervalo simulado, el primer punto calculado
+ que alcanza la meta es el mes ${encontrado.t.toFixed(2)}.`
+ : "La meta no se alcanza dentro del intervalo de simulación.")+
+ ` El error absoluto final de Heun es ${ultimo.eaH.toFixed(6)}
+ y el de RK4 es ${ultimo.eaR.toFixed(6)}.`;
+
+ document.getElementById("interpretacion").textContent=texto;
+ mensaje.textContent="Simulación ejecutada correctamente.";
+ mensaje.className="note";
+}
+
+function dibujar(datos,E0){
+
+ const svg=document.getElementById("grafica");
+ const W=900,H=390,L=75,R=25,TOP=25,B=65;
+ const maxT=datos[datos.length-1].t;
+ const maxY=E0*1.05;
+
+ const x=t=>L+t/maxT*(W-L-R);
+ const y=v=>TOP+(maxY-v)/maxY*(H-TOP-B);
+
+ let contenido="";
+
+ for(let i=0;i<=5;i++){
+  const val=maxY*i/5;
+  const yy=y(val);
+  contenido+=`<line x1="${L}" y1="${yy}" x2="${W-R}" y2="${yy}" stroke="#e2e8f0"/>`;
+  contenido+=`<text x="${L-10}" y="${yy+4}" text-anchor="end" font-size="12">${val.toFixed(0)}</text>`;
+ }
+
+ for(let i=0;i<=5;i++){
+  const t=maxT*i/5;
+  const xx=x(t);
+  contenido+=`<text x="${xx}" y="${H-35}" text-anchor="middle" font-size="12">${t.toFixed(1)}</text>`;
+ }
+
+ contenido+=`<line x1="${L}" y1="${TOP}" x2="${L}" y2="${H-B}" stroke="#475569"/>`;
+ contenido+=`<line x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}" stroke="#475569"/>`;
+ contenido+=`<text x="${W/2}" y="${H-8}" text-anchor="middle" font-size="14">Tiempo (meses)</text>`;
+ contenido+=`<text x="18" y="${H/2}" transform="rotate(-90 18 ${H/2})" text-anchor="middle" font-size="14">Consumo (kWh/mes)</text>`;
+
+ const series=[
+  ["exacta","#2563eb"],
+  ["heun","#f59e0b"],
+  ["rk4","#16a34a"]
+ ];
+
+ series.forEach(([key,color])=>{
+  const puntos=datos.map(d=>`${x(d.t)},${y(d[key])}`).join(" ");
+  contenido+=`<polyline points="${puntos}" fill="none" stroke="${color}" stroke-width="3" stroke-linejoin="round"/>`;
+ });
+
+ svg.innerHTML=contenido;
+}
+
+calcular();
+</script>
+
+</body>
+</html>
